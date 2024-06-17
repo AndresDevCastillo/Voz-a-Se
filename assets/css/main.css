@@ -1,0 +1,12 @@
+@layer tailwind-base {
+    @tailwind base;
+}
+
+@layer primevue {
+    /* Aquí puedes añadir ajustes específicos para los estilos de PrimeVue si es necesario */
+}
+
+@layer tailwind-utilities {
+    @tailwind components;
+    @tailwind utilities;
+}

@@ -1,0 +1,150 @@
+<template>
+  <div>
+    <v-row>
+      <v-col cols="5">
+        <h1>Login</h1>
+        <v-text-field v-model="paquete.username" label="Usuario"></v-text-field>
+        <v-text-field
+          v-model="paquete.password"
+          label="Contrasena"
+        ></v-text-field>
+        <v-btn prepend-icon="mdi-check-circle" @click="login()">
+          <template v-slot:prepend>
+            <v-icon color="success"></v-icon>
+          </template>
+          Loguin
+        </v-btn>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col>
+        <h2>Chat</h2>
+        <h1>Estado de la Conexion : {{ estado }}</h1>
+        <h1>Conectados : {{ conectados }}</h1>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col cols="5">
+        <v-text-field v-model="message" label="Mensaje"></v-text-field>
+        <v-btn prepend-icon="mdi-check-circle" @click="sendMessage()">
+          <template v-slot:prepend>
+            <v-icon color="success"></v-icon>
+          </template>
+          Enviar
+        </v-btn>
+        <v-btn prepend-icon="mdi-check-circle" @click="conectar()">
+          <template v-slot:prepend>
+            <v-icon color="success"></v-icon>
+          </template>
+
+          Conectar
+        </v-btn>
+        <v-btn prepend-icon="mdi-check-circle" @click="desconectar()">
+          <template v-slot:prepend>
+            <v-icon color="success"></v-icon>
+          </template>
+
+          Desconectar
+        </v-btn>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col cols="3">
+        <h1>Mensajes Recibidos</h1>
+        <template v-for="valor in messages" :key="valor">
+          <v-chip>
+            {{ valor }}
+          </v-chip>
+        </template>
+      </v-col>
+    </v-row>
+  </div>
+</template>
+
+<script>
+import axios from "axios";
+import io from "socket.io-client";
+import { mapActions } from "pinia";
+
+import { useAppStore } from "../stores/app";
+
+export default {
+  data() {
+    return {
+      api: "http://localhost:3000",
+      socket: null,
+      message: "",
+      conectados: 0,
+      messages: [],
+      estado: "",
+      Store: null,
+      paquete: {
+        username: null,
+        password: null,
+      },
+    };
+  },
+  created() {
+    this.Store = useAppStore();
+  },
+
+  methods: {
+    ...mapActions(useAppStore, ["setToken", "setUsername"]),
+
+    async login() {
+      await axios
+        .post(`${this.api}/auth/login`, this.paquete)
+        .then((response) => {
+          console.log(response.data);
+          this.setUsername(response.data.username);
+          this.setToken(response.data.access_token);
+        });
+    },
+    desconectar() {
+      this.socket.disconnect();
+    },
+    conectar() {
+      this.socket = io("http://localhost:3000", {
+        extraHeaders: {
+          authorization: `${this.Store.$state.token}`,
+        },
+      });
+
+      this.socket.on("connect", () => {
+        this.estado = "Conectado";
+      });
+
+      this.socket.on("disconnect", () => {
+        this.estado = "Desconectado";
+      });
+
+      this.socket.on("clientsconnect", (clients) => {
+        console.log("ejecutado");
+        this.updateclients(clients);
+      });
+
+      this.socket.on("message-server", (paquete) => {
+        this.messages.push(paquete.fullname);
+      });
+    },
+
+    sendMessage() {
+      if (this.message !== "") {
+        this.socket.emit("msgToServer", {
+          id: this.socket.id,
+          mensaje: this.message,
+        });
+        this.message = "";
+      }
+    },
+
+    updateclients(clients) {
+      this.conectados = clients;
+    },
+  },
+};
+</script>
+
+<style scoped>
+/* Estilos opcionales */
+</style>
