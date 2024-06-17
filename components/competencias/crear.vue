@@ -31,7 +31,7 @@ watch(mostrarDialogo, (newValue) => {
 });
 
 const enterTemaTemp = () => {
-  if (paqueteDialogo.value.temaTemp || paqueteDialogo.value.temaTemp !== "") {
+  if (paqueteDialogo.value.temaTemp && paqueteDialogo.value.temaTemp !== "") {
     paqueteDialogo.value.temas.push({
       tema: paqueteDialogo.value.temaTemp,
     });
@@ -39,9 +39,9 @@ const enterTemaTemp = () => {
   }
 };
 
-const crearCompetencia = () => {
+const crearCompetencia = async () => {
   try {
-    if (!paqueteDialogo.value.nombre || paqueteDialogo.value.nombre == "") {
+    if (!paqueteDialogo.value.nombre && paqueteDialogo.value.nombre == "") {
       toast.add({
         severity: "error",
         summary: "Crear competencia",
@@ -55,7 +55,7 @@ const crearCompetencia = () => {
       competencia: paqueteDialogo.value.nombre,
       temas: paqueteDialogo.value.temas,
     };
-    api("/contenido", {
+    await api("/contenido", {
       body,
       method: "POST",
     });
@@ -74,7 +74,7 @@ const crearCompetencia = () => {
   } catch (error) {
     console.log(error);
     toast.add({
-      severity: "danger",
+      severity: "error",
       summary: "Crear competencia",
       detail: "Ocurrio un problema!",
       life: 3000,

@@ -15,39 +15,130 @@ const DialogoCrearCompetencia = ref(false);
 const expandedRows = ref([]);
 
 const contenidos = ref([]);
-const contenidosSeleccionados = ref([]);
+const competenciasSeleccionadas = ref([]);
 
 const getContenidos = async () => {
   contenidos.value = await api("/contenido");
+};
+
+const idAgregarTema = ref("");
+const showAgregarTema = ref(false);
+const agregarTema = (id) => {
+  idAgregarTema.value = id;
+  showAgregarTema.value = true;
 };
 
 const competenciaCreada = async () => {
   await getContenidos();
   DialogoCrearCompetencia.value = false;
 };
+const temaActualizado = async () => {
+  await getContenidos();
+  showAgregarTema.value = false;
+};
 
-const confirmarDeleteSelect = () => {
+const confirmarDeleteSelectMulti = () => {
   confirm.require({
     message: "Estas seguro de eliminar las competencias?",
-    header: "Eliminar Competencias",
+    header: "Danger Zone",
     icon: "pi pi-info-circle",
     rejectLabel: "Cancelar",
-    rejectProps: {
-      label: "Cancelar",
-      severity: "warn",
-      outlined: true,
+    acceptLabel: "Eliminar",
+    rejectClass: "p-button-secondary p-button-outlined",
+    acceptClass: "p-button-danger",
+    accept: async () => {
+      try {
+        const body = competenciasSeleccionadas.value.map(
+          (competencia) => competencia._id
+        );
+        await api("/contenido/competencias", {
+          method: "DELETE",
+          body,
+        });
+        await getContenidos();
+        toast.add({
+          severity: "success",
+          summary: "Eliminados correctamente",
+          detail: "Competencias eliminadas",
+          life: 3000,
+        });
+      } catch (error) {
+        console.log(error);
+        toast.add({
+          severity: "danger",
+          summary: "Eliminar competencias",
+          detail: "Ocurrio un problema!",
+          life: 3000,
+        });
+      }
     },
-    acceptProps: {
-      label: "Delete",
-      severity: "error",
+  });
+};
+
+const confirmarDeleteCompetencia = (id) => {
+  confirm.require({
+    message: "Estas seguro de eliminar la competencia?",
+    header: "Danger Zone",
+    icon: "pi pi-info-circle",
+    rejectLabel: "Cancelar",
+    acceptLabel: "Eliminar",
+    rejectClass: "p-button-secondary p-button-outlined",
+    acceptClass: "p-button-danger",
+    accept: async () => {
+      try {
+        await api("/contenido/eliminar/" + id, {
+          method: "DELETE",
+        });
+        await getContenidos();
+        toast.add({
+          severity: "success",
+          summary: "Eliminado correctamente",
+          detail: "Competencias eliminadas",
+          life: 3000,
+        });
+      } catch (error) {
+        console.log(error);
+        toast.add({
+          severity: "danger",
+          summary: "Eliminar competencias",
+          detail: "Ocurrio un problema!",
+          life: 3000,
+        });
+      }
     },
-    accept: () => {
-      toast.add({
-        severity: "success",
-        summary: "Competencias eliminadas",
-        detail: "Eliminados correctamente",
-        life: 3000,
-      });
+  });
+};
+
+const confirmarDeleteTema = (id, posicion) => {
+  confirm.require({
+    message: "Estas seguro de eliminar el tema?",
+    header: "Danger Zone",
+    icon: "pi pi-info-circle",
+    rejectLabel: "Cancelar",
+    acceptLabel: "Eliminar",
+    rejectClass: "p-button-secondary p-button-outlined",
+    acceptClass: "p-button-danger",
+    accept: async () => {
+      try {
+        await api("/contenido/tema/" + id + "/" + posicion, {
+          method: "DELETE",
+        });
+        await getContenidos();
+        toast.add({
+          severity: "success",
+          summary: "Eliminado correctamente",
+          detail: "Tema eliminado",
+          life: 3000,
+        });
+      } catch (error) {
+        console.log(error);
+        toast.add({
+          severity: "danger",
+          summary: "Eliminar Tema",
+          detail: "Ocurrio un problema!",
+          life: 3000,
+        });
+      }
     },
   });
 };
@@ -67,13 +158,12 @@ await getContenidos();
         />
         <Button
           label="Borrar"
-          v-show="contenidosSeleccionados.length"
           icon="pi pi-trash"
           severity="danger"
           :disabled="
-            !contenidosSeleccionados || !contenidosSeleccionados.length
+            !competenciasSeleccionadas || !competenciasSeleccionadas.length
           "
-          @click="confirmarDeleteSelect()"
+          @click="confirmarDeleteSelectMulti()"
         />
       </template>
 
@@ -93,7 +183,7 @@ await getContenidos();
 
     <DataTable
       v-model:expandedRows="expandedRows"
-      v-model:selection="contenidosSeleccionados"
+      v-model:selection="competenciasSeleccionadas"
       :value="contenidos"
       dataKey="_id"
       :filters="filters"
@@ -133,19 +223,19 @@ await getContenidos();
         <template #body="slotProps">
           <div class="flex justify-end">
             <div class="actions flex gap-2">
-              <Button icon="pi pi-plus" outlined rounded severity="success" />
               <Button
-                icon="pi pi-pencil"
+                icon="pi pi-plus"
                 outlined
                 rounded
-                @click="editProduct(slotProps.data)"
+                severity="success"
+                @click="agregarTema(slotProps.data._id)"
               />
               <Button
                 icon="pi pi-trash"
                 outlined
                 rounded
                 severity="danger"
-                @click="confirmDeleteProduct(slotProps.data)"
+                @click="confirmarDeleteCompetencia(slotProps.data._id)"
               />
             </div>
           </div>
@@ -159,9 +249,18 @@ await getContenidos();
           >
             <Column field="tema" header="Temas"></Column>
             <Column :exportable="false" style="min-width: 18rem">
-              <template #body="slotProps">
+              <template #body="slotTema">
                 <div class="flex justify-end">
                   <div class="actions flex gap-2">
+                    <Button
+                      icon="pi pi-trash"
+                      outlined
+                      rounded
+                      severity="danger"
+                      @click="
+                        confirmarDeleteTema(slotProps.data._id, slotTema.index)
+                      "
+                    />
                     <Button
                       icon="pi pi-play"
                       outlined
@@ -180,6 +279,12 @@ await getContenidos();
       :mostrarDialogo="DialogoCrearCompetencia"
       @cerrarDialogo="DialogoCrearCompetencia = false"
       @competenciaCreada="competenciaCreada()"
+    />
+    <CompetenciasAgregarTema
+      :idActualizar="idAgregarTema"
+      :mostrarDialogo="showAgregarTema"
+      @cerrarDialogo="showAgregarTema = false"
+      @temaAgregado="temaActualizado()"
     />
   </div>
 </template>
