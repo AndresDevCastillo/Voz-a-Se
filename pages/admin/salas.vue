@@ -1,15 +1,8 @@
 <script setup>
-import { FilterMatchMode } from "primevue/api";
-import io from "socket.io-client";
-
 definePageMeta({
   layout: "admin",
 });
 
-const api = useApi();
-const confirm = useConfirm();
-const userState = useUserStore();
-const toast = useToast();
 const menu = ref(null);
 let socket = null;
 
@@ -20,8 +13,6 @@ const room = ref({
   username: null,
   message: "",
 });
-
-const rooms_actives = ref(null);
 
 const chat_active = ref(false);
 const chat_history = ref([]);
@@ -59,11 +50,7 @@ const toggle = (event) => {
 };
 
 const crearSala = () => {
-  socket = io("http://localhost:3000", {
-    extraHeaders: {
-      authorization: `${userState.getToken()}`,
-    },
-  });
+  socket = useSocket();
 
   socket.on("connect", () => {
     console.log("connect");

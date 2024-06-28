@@ -1,6 +1,4 @@
 <script setup>
-import io from "socket.io-client";
-
 definePageMeta({
   layout: "admin",
 });
