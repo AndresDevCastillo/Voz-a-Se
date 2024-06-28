@@ -13,4 +13,8 @@ body {
   margin: 0;
   padding: 0;
 }
+
+.bg-primary {
+  background-color: #10b981;
+}
 </style>

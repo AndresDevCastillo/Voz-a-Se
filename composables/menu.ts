@@ -9,6 +9,11 @@ export const menu = () => {
           icon: "pi pi-graduation-cap",
           route: "/admin/competencias",
         },
+        {
+          label: "Salas",
+          icon: "pi pi-comments",
+          route: "/admin/salas",
+        },
       ],
     },
     { separator: true },
