@@ -17,7 +17,7 @@ export const useUserStore = defineStore("useUserStore", {
       this.user = user;
       const router = useRouter();
       router.push({
-        path: "/",
+        path: "/admin/competencias",
       });
     },
     getUser() {

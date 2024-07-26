@@ -12,24 +12,28 @@ export default defineNuxtConfig({
       },
     ],
   },
+
   modules: [
     "nuxt-primevue",
     "@nuxtjs/tailwindcss",
     "@pinia/nuxt", // needed
     "@pinia-plugin-persistedstate/nuxt",
   ],
+
   runtimeConfig: {
     public: {
       pddvAPI: process.env.PDDV_API,
     },
     private: {},
   },
+
   css: [
     "primevue/resources/themes/aura-light-green/theme.css",
     "primevue/resources/primevue.min.css",
     "primeicons/primeicons.css",
     "@/assets/css/main.css",
   ],
+
   build: {
     postcss: {
       postcssOptions: {
@@ -40,7 +44,10 @@ export default defineNuxtConfig({
       },
     },
   },
+
   primevue: {
     usePrimeVue: true,
   },
+
+  compatibilityDate: "2024-07-24",
 });

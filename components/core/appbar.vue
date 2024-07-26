@@ -15,9 +15,7 @@ const toggle = (event: any) => {
     <Sidebar v-model:visible="visibleSidebar">
       <Menu :model="menu()" class="w-full">
         <template #submenuheader="{ item }">
-          <span class="text-green-500 dark:text-green-400 font-bold">{{
-            item.label
-          }}</span>
+          <span class="text-primary font-bold">{{ item.label }}</span>
         </template>
 
         <template #item="{ item, props }">
@@ -35,23 +33,23 @@ const toggle = (event: any) => {
         </template>
       </Menu>
     </Sidebar>
-    <Menubar class="appBar bg-green-100">
+    <Menubar class="appBar bg-primary">
       <template #start>
         <div class="flex gap-2 items-center">
           <Button
-            icon="pi pi-bars"
+            icon="pi pi-bars text-white"
             text
             size="large"
             @click="visibleSidebar = true"
           />
           <Avatar
-            image="https://senasofiaplus.xyz/wp-content/uploads/2023/10/logo-del-sena-01.png"
+            image=" /img/logoSena.svg"
             class="mr-2"
             size="large"
             shape="circle"
           />
           <a href="/" class="no-underline">
-            <span class="text-2xl font-bold text-green-400"
+            <span class="text-2xl font-bold text-white"
               >Proyecto Decodificador De Voz</span
             >
           </a>
@@ -62,8 +60,8 @@ const toggle = (event: any) => {
           @click="toggle"
           class="mr-2"
           size="large"
-          image="https://64.media.tumblr.com/181c0d45c0560e536c8872335402fbd6/tumblr_pmjavvYh9A1w9meb1_500.jpg"
           shape="circle"
+          image="/img/andres.jpg"
         />
         <div class="card flex">
           <OverlayPanel ref="op">

@@ -80,36 +80,20 @@ const sendMessage = () => {
   });
   room.value.message = ""; // Clear the input after sending the message
 };
-
-const sendImage = (event) => {
-  console.log("SendImage");
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    const base64Image = reader.result;
-    socket.emit("image", {
-      room: room.value.room,
-      username: room.value.username,
-      image: base64Image,
-    });
-  };
-  reader.readAsDataURL(file);
-};
 </script>
 <template>
   <div class="m-5">
     <Toolbar v-if="!chat_active">
       <template #start>
-        <Button icon="pi pi-plus" class="mr-2" severity="secondary" />
-        <Button icon="pi pi-print" class="mr-2" severity="secondary" />
+        <Button icon="pi pi-plus" class="mr-2 bg-primary" />
+        <Button icon="pi pi-print" class="mr-2 bg-primary" />
       </template>
 
       <template #end>
         <Button
           icon="pi pi-plus"
           label="Salas"
+          class="bg-primary"
           @click="dialogCrearSala = true"
         />
       </template>
@@ -124,13 +108,13 @@ const sendImage = (event) => {
 
       <template #icons>
         <div class="flex gap-1">
-          <Button icon="pi pi-hashtag" :label="room.room" />
-          <Button icon="pi pi-cog" @click="toggle"> </Button>
+          <Button icon="pi pi-hashtag" class="bg-primary" :label="room.room" />
+          <Button icon="pi pi-cog" class="bg-primary" click="toggle"> </Button>
         </div>
         <Menu ref="menu" id="config_menu" :model="menu_chat" popup />
       </template>
       <div class="relative">
-        <div class="chat h-80">
+        <div class="chat h-80 overflow-auto">
           <template v-for="chat in chat_history">
             <div
               :class="
@@ -164,15 +148,13 @@ const sendImage = (event) => {
             </div>
           </template>
         </div>
-        <div class="flex gap-1 mt-3 bg-primary p-2 rounded-md">
-          <Button icon="pi pi-image" @click="$refs.fileInput.click()" />
-          <input
-            ref="fileInput"
-            type="file"
-            accept="image/*"
-            @change="sendImage($event)"
-            class="hidden"
+        <div class="flex gap-1 mt-3 p-2 rounded-md">
+          <Button
+            icon="pi pi-video "
+            class="bg-primary"
+            @click="$refs.fileInput.click()"
           />
+
           <InputText
             placeholder="Escribe un mensaje.."
             v-model="room.message"
@@ -182,6 +164,7 @@ const sendImage = (event) => {
           <Button
             :disabled="!room.message || room.message == ''"
             @click="sendMessage()"
+            class="bg-primary"
             icon="pi pi-send"
           />
         </div>
@@ -206,6 +189,7 @@ const sendImage = (event) => {
           <InputText placeholder="Codigo" v-model="room.room" />
           <Button
             icon="pi pi-sync"
+            class="bg-primary"
             @click="generateRandomRoom()"
             severity="warning"
           />
@@ -219,6 +203,7 @@ const sendImage = (event) => {
           ></Button>
           <Button
             type="button"
+            class="bg-primary"
             label="Entrar"
             :disabled="
               !room.room ||

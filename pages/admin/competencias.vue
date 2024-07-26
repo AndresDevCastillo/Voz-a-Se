@@ -180,101 +180,108 @@ await getContenidos();
         <Button label="Exportar" icon="pi pi-upload" severity="help" />
       </template>
     </Toolbar>
-
-    <DataTable
-      v-model:expandedRows="expandedRows"
-      v-model:selection="competenciasSeleccionadas"
-      :value="contenidos"
-      dataKey="_id"
-      :filters="filters"
-    >
-      <template #header>
-        <div class="flex flex-wrap gap-2 items-center justify-between">
-          <h3 class="m-0">
-            <i class="pi pi-graduation-cap" style="font-size: 1.3rem" />
-            COMPETENCIAS
-          </h3>
-          <IconField>
-            <InputIcon>
-              <i class="pi pi-search" />
-            </InputIcon>
-            <InputText
-              v-model="filters['global'].value"
-              placeholder="Buscar..."
-            />
-          </IconField>
-        </div>
-      </template>
-      <Column
-        selectionMode="multiple"
-        style="width: 3rem"
-        :exportable="false"
-      ></Column>
-      <Column expander style="width: 5rem" />
-      <Column>
-        <template #body="slotProps">
-          <div class="flex items-center gap-2">
-            <i class="pi pi-folder" />
-            <p>{{ slotProps.data.competencia.toUpperCase() }}</p>
-          </div>
-        </template>
-      </Column>
-      <Column :exportable="false" style="min-width: 18rem">
-        <template #body="slotProps">
-          <div class="flex justify-end">
-            <div class="actions flex gap-2">
-              <Button
-                icon="pi pi-plus"
-                outlined
-                rounded
-                severity="success"
-                @click="agregarTema(slotProps.data._id)"
-              />
-              <Button
-                icon="pi pi-trash"
-                outlined
-                rounded
-                severity="danger"
-                @click="confirmarDeleteCompetencia(slotProps.data._id)"
-              />
+    <Card>
+      <template #content>
+        <DataTable
+          v-model:expandedRows="expandedRows"
+          v-model:selection="competenciasSeleccionadas"
+          :value="contenidos"
+          dataKey="_id"
+          :filters="filters"
+        >
+          <template #header>
+            <div class="flex flex-wrap gap-2 items-center justify-between">
+              <h3 class="m-0">
+                <i class="pi pi-graduation-cap" style="font-size: 1.3rem" />
+                COMPETENCIAS
+              </h3>
+              <IconField>
+                <InputIcon>
+                  <i class="pi pi-search" />
+                </InputIcon>
+                <InputText
+                  v-model="filters['global'].value"
+                  placeholder="Buscar..."
+                />
+              </IconField>
             </div>
-          </div>
-        </template>
-      </Column>
-      <template #expansion="slotProps">
-        <div class="p-4">
-          <DataTable
-            :value="slotProps.data.temas"
-            tableStyle="min-width: 50rem"
-          >
-            <Column field="tema" header="Temas"></Column>
-            <Column :exportable="false" style="min-width: 18rem">
-              <template #body="slotTema">
-                <div class="flex justify-end">
-                  <div class="actions flex gap-2">
-                    <Button
-                      icon="pi pi-trash"
-                      outlined
-                      rounded
-                      severity="danger"
-                      @click="
-                        confirmarDeleteTema(slotProps.data._id, slotTema.index)
-                      "
-                    />
-                    <Button
-                      icon="pi pi-play"
-                      outlined
-                      rounded
-                      severity="info"
-                    />
-                  </div>
+          </template>
+          <Column
+            selectionMode="multiple"
+            style="width: 3rem"
+            :exportable="false"
+          ></Column>
+          <Column expander style="width: 5rem" />
+          <Column>
+            <template #body="slotProps">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-folder" />
+                <p>{{ slotProps.data.competencia.toUpperCase() }}</p>
+              </div>
+            </template>
+          </Column>
+          <Column :exportable="false" style="min-width: 18rem">
+            <template #body="slotProps">
+              <div class="flex justify-end">
+                <div class="actions flex gap-2">
+                  <Button
+                    icon="pi pi-plus"
+                    outlined
+                    rounded
+                    severity="success"
+                    @click="agregarTema(slotProps.data._id)"
+                  />
+                  <Button
+                    icon="pi pi-trash"
+                    outlined
+                    rounded
+                    severity="danger"
+                    @click="confirmarDeleteCompetencia(slotProps.data._id)"
+                  />
                 </div>
-              </template>
-            </Column>
-          </DataTable>
-        </div>
+              </div>
+            </template>
+          </Column>
+          <template #expansion="slotProps">
+            <div class="p-4">
+              <DataTable
+                :value="slotProps.data.temas"
+                tableStyle="min-width: 50rem"
+              >
+                <Column field="tema" header="Temas"></Column>
+                <Column :exportable="false" style="min-width: 18rem">
+                  <template #body="slotTema">
+                    <div class="flex justify-end">
+                      <div class="actions flex gap-2">
+                        <Button
+                          icon="pi pi-trash"
+                          outlined
+                          rounded
+                          severity="danger"
+                          @click="
+                            confirmarDeleteTema(
+                              slotProps.data._id,
+                              slotTema.index
+                            )
+                          "
+                        />
+                        <Button
+                          icon="pi pi-play"
+                          outlined
+                          rounded
+                          severity="info"
+                        />
+                      </div>
+                    </div>
+                  </template>
+                </Column>
+              </DataTable>
+            </div>
+          </template>
+        </DataTable>
       </template>
-    </DataTable>
+    </Card>
+
     <CompetenciasCrear
       :mostrarDialogo="DialogoCrearCompetencia"
       @cerrarDialogo="DialogoCrearCompetencia = false"

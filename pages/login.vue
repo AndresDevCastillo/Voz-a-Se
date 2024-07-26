@@ -58,7 +58,7 @@ const iniciarSesion = async () => {
 </script>
 <template>
   <div class="login">
-    <div class="h-screen flex bg-green-400 justify-center items-center">
+    <div class="h-screen flex bg-primary justify-center items-center">
       <Card class="w-96 p-4">
         <template #title>
           <div class="flex flex-col items-center">
@@ -94,3 +94,5 @@ const iniciarSesion = async () => {
     </div>
   </div>
 </template>
+
+<style></style>
