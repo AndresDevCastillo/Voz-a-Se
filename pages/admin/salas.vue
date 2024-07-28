@@ -7,6 +7,7 @@ const menu = ref(null);
 let socket = null;
 
 const dialogCrearSala = ref(false);
+const dialogoCamara = ref(false);
 
 const room = ref({
   room: null,
@@ -63,6 +64,7 @@ const crearSala = () => {
   });
 
   socket.on("chatHistory", (data) => {
+    console.log(data);
     chat_history.value = data;
   });
 
@@ -79,6 +81,21 @@ const sendMessage = () => {
     message: room.value.message,
   });
   room.value.message = ""; // Clear the input after sending the message
+};
+
+const urlBlobVideo = (videoBuffer) => {
+  return URL.createObjectURL(new Blob([videoBuffer], { type: "video/mp4" }));
+};
+
+const sendVideo = (video) => {
+  console.log("Send Padre");
+  console.log(video);
+  dialogoCamara.value = false;
+  socket.emit("video", {
+    room: room.value.room,
+    username: room.value.username,
+    video: video,
+  });
 };
 </script>
 <template>
@@ -133,16 +150,15 @@ const sendMessage = () => {
                     shape="circle"
                   />
                 </template>
-                <span v-if="chat.message != 'ImageSocket'" class="ml-2">{{
+                <span v-if="chat.message != 'videoSocket'" class="ml-2">{{
                   chat.message
                 }}</span>
-                <!-- Mostrar imagen si existe -->
-                <Image
-                  v-if="chat.image"
-                  :src="chat.image"
-                  alt="Image"
+                <video
+                  v-if="chat.video"
+                  :src="urlBlobVideo(chat.video)"
                   width="200"
                   preview
+                  controls
                 />
               </Message>
             </div>
@@ -152,7 +168,7 @@ const sendMessage = () => {
           <Button
             icon="pi pi-video "
             class="bg-primary"
-            @click="$refs.fileInput.click()"
+            @click="dialogoCamara = true"
           />
 
           <InputText
@@ -214,6 +230,16 @@ const sendMessage = () => {
             @click="crearSala()"
           ></Button>
         </div>
+      </div>
+    </Dialog>
+    <Dialog
+      v-model:visible="dialogoCamara"
+      modal
+      header="Camara"
+      :style="{ width: '28rem' }"
+    >
+      <div class="flex flex-col gap-4">
+        <SalasCamara @send-video="sendVideo" />
       </div>
     </Dialog>
   </div>
