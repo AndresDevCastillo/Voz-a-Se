@@ -2,6 +2,7 @@ type User = {
   _id: string;
   username: string;
   access_token: string;
+  rol: string;
 };
 
 interface UserState {
@@ -16,8 +17,22 @@ export const useUserStore = defineStore("useUserStore", {
     setUser(user: any) {
       this.user = user;
       const router = useRouter();
+      let path;
+      switch (user.rol) {
+        case "Admin":
+          path = "/admin/competencias";
+          break;
+
+        case "Instructor":
+          path = "/admin/salas";
+          break;
+
+        case "Aprendiz":
+          path = "/admin/salas";
+          break;
+      }
       router.push({
-        path: "/admin/competencias",
+        path,
       });
     },
     getUser() {

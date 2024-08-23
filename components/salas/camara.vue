@@ -1,6 +1,7 @@
 <script setup>
 const emit = defineEmits(["send-video"]);
 
+const CHUNK_SIZE = 100 * 1024; // 100 KB
 const webcamRef = ref(null);
 const isCameraActive = ref(false);
 const isRecording = ref(false);
@@ -38,6 +39,8 @@ const startCountdown = () => {
     console.error("La cámara no está activa.");
     return;
   }
+  startRecording();
+  return;
 
   isCountdown.value = true;
   const countdownVideo = document.getElementById("countdown");
@@ -64,7 +67,6 @@ const stopRecording = () => {
   return new Promise((resolve) => {
     mediaRecorder.addEventListener("stop", () => {
       recordedBlob = new Blob(recordedChunks, { type: "video/mp4" });
-      console.log("Grabación finalizada:", recordedBlob);
       isRecording.value = false;
       resolve();
     });
@@ -78,10 +80,42 @@ const handleDataAvailable = (event) => {
   }
 };
 
-const sendVideo = () => {
+const sendVideoInChunks = async (blob) => {
+  const totalChunks = Math.ceil(blob.size / CHUNK_SIZE);
+  const reader = new FileReader();
+  const chunksSendSocket = []; // Mueve esta línea dentro de la función
+
+  const sendChunk = (start) => {
+    const end = Math.min(start + CHUNK_SIZE, blob.size);
+    const chunk = blob.slice(start, end);
+
+    reader.readAsArrayBuffer(chunk);
+    reader.onload = () => {
+      chunksSendSocket.push({
+        chunk: Array.from(new Uint8Array(reader.result)),
+        chunkIndex: start / CHUNK_SIZE,
+        totalChunks: totalChunks,
+      });
+
+      if (end < blob.size) {
+        sendChunk(end); // Llama al siguiente fragmento
+      } else {
+        emit("send-video", chunksSendSocket); // Llama a emit solo después de que todos los fragmentos estén listos
+      }
+    };
+  };
+
+  sendChunk(0); // Inicia el proceso de fragmentación
+};
+
+const sendVideo = async () => {
   if (!recordedBlob) return;
 
-  emit("send-video", recordedBlob);
+  try {
+    await sendVideoInChunks(recordedBlob);
+  } catch (error) {
+    console.error("Error al enviar el video en fragmentos:", error);
+  }
 };
 </script>
 

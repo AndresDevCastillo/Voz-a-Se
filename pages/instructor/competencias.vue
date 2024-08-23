@@ -42,13 +42,14 @@ await getContenidos();
             <InputText
               v-model="filters['global'].value"
               placeholder="Buscar..."
+              :globalFilterFields="['competencia']"
             />
           </IconField>
         </div>
       </template>
 
       <Column expander style="width: 5rem" />
-      <Column>
+      <Column field="competencia">
         <template #body="slotProps">
           <div class="flex items-center gap-2">
             <i class="pi pi-folder" />

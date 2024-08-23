@@ -4,7 +4,7 @@ definePageMeta({
 });
 
 const menu = ref(null);
-let socket = null;
+var socket = null;
 
 const dialogCrearSala = ref(false);
 const dialogoCamara = ref(false);
@@ -52,7 +52,6 @@ const toggle = (event) => {
 
 const crearSala = () => {
   socket = useSocket();
-
   socket.on("connect", () => {
     console.log("connect");
     chat_active.value = true;
@@ -83,23 +82,31 @@ const sendMessage = () => {
   room.value.message = ""; // Clear the input after sending the message
 };
 
-const urlBlobVideo = (videoBuffer) => {
-  return URL.createObjectURL(new Blob([videoBuffer], { type: "video/mp4" }));
-};
+function createVideoSrcFromBase64(base64) {
+  return `data:video/mp4;base64,${base64}`;
+}
 
-const sendVideo = (video) => {
-  console.log("Send Padre");
-  console.log(video);
+const sendVideo = (chunks) => {
   dialogoCamara.value = false;
-  socket.emit("video", {
-    room: room.value.room,
-    username: room.value.username,
-    video: video,
-  });
+  console.log(chunks);
+
+  if (Array.isArray(chunks) && chunks.length > 0) {
+    // Asegúrate de que chunks sea un array y no esté vacío
+    chunks.forEach((chunk) => {
+      console.log(chunk);
+      socket.emit("video_chunk", {
+        room: room.value.room,
+        username: room.value.username,
+        ...chunk,
+      });
+    });
+  } else {
+    console.error("chunks no es un arreglo o está vacío");
+  }
 };
 </script>
 <template>
-  <div class="m-5">
+  <div class="flex flex-col min-h-screen m-5">
     <Toolbar v-if="!chat_active">
       <template #start>
         <Button icon="pi pi-plus" class="mr-2 bg-primary" />
@@ -115,7 +122,7 @@ const sendVideo = (video) => {
         />
       </template>
     </Toolbar>
-    <Panel v-if="chat_active">
+    <Panel class="flex-grow" v-if="chat_active">
       <template #header>
         <div class="flex menu_chat items-center gap-2">
           <Avatar size="large" :label="room.username[0]" shape="circle" />
@@ -131,7 +138,7 @@ const sendVideo = (video) => {
         <Menu ref="menu" id="config_menu" :model="menu_chat" popup />
       </template>
       <div class="relative">
-        <div class="chat h-80 overflow-auto">
+        <div class="chat h-80 overflow-auto p-5">
           <template v-for="chat in chat_history">
             <div
               :class="
@@ -155,10 +162,11 @@ const sendVideo = (video) => {
                 }}</span>
                 <video
                   v-if="chat.video"
-                  :src="urlBlobVideo(chat.video)"
+                  :src="createVideoSrcFromBase64(chat.video)"
                   width="200"
-                  preview
-                  controls
+                  autoplay
+                  loop
+                  muted
                 />
               </Message>
             </div>

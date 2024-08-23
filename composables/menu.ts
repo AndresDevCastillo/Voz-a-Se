@@ -1,4 +1,6 @@
 export const menu = () => {
+  const userState = useUserStore();
+
   const menuAdmin = [
     { separator: true },
     {
@@ -40,5 +42,78 @@ export const menu = () => {
       ],
     },
   ];
-  return menuAdmin;
+
+  const menuInstructor = [
+    { separator: true },
+    {
+      label: "Instrutor",
+      items: [
+        {
+          label: "Competencias",
+          icon: "pi pi-graduation-cap",
+          route: "/instructor/competencias",
+        },
+        {
+          label: "Salas",
+          icon: "pi pi-comments",
+          route: "/admin/salas",
+        },
+      ],
+    },
+
+    { separator: true },
+    {
+      label: "Administración",
+      items: [
+        {
+          label: "Cerrar sesión",
+          icon: "pi pi-sign-out",
+          route: "/logout",
+        },
+      ],
+    },
+  ];
+
+  const menuAprendiz = [
+    { separator: true },
+    {
+      label: "Aprendiz",
+      items: [
+        {
+          label: "Salas",
+          icon: "pi pi-comments",
+          route: "/admin/salas",
+        },
+      ],
+    },
+
+    { separator: true },
+    {
+      label: "Administración",
+      items: [
+        {
+          label: "Cerrar sesión",
+          icon: "pi pi-sign-out",
+          route: "/logout",
+        },
+      ],
+    },
+  ];
+
+  const user = userState.getUser();
+  let menu;
+  switch (user?.rol) {
+    case "Admin":
+      menu = menuAdmin;
+      break;
+
+    case "Instructor":
+      menu = menuInstructor;
+      break;
+
+    case "Aprendiz":
+      menu = menuAprendiz;
+  }
+
+  return menu;
 };
