@@ -19,6 +19,10 @@ export const useUserStore = defineStore("useUserStore", {
       const router = useRouter();
       let path;
       switch (user.rol) {
+        case "Root":
+          path = "/admin/admin";
+          break;
+
         case "Admin":
           path = "/admin/competencias";
           break;

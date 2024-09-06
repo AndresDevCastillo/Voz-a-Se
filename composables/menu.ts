@@ -1,11 +1,41 @@
 export const menu = () => {
   const userState = useUserStore();
 
+  const menuRoot = [
+    { separator: true },
+    {
+      label: "Administrador",
+      items: [
+        {
+          label: "Administradores",
+          icon: "pi pi-user-edit",
+          route: "/admin/admin",
+        },
+      ],
+    },
+    { separator: true },
+    {
+      label: "Administración",
+      items: [
+        {
+          label: "Cerrar sesión",
+          icon: "pi pi-sign-out",
+          route: "/logout",
+        },
+      ],
+    },
+  ];
+
   const menuAdmin = [
     { separator: true },
     {
       label: "Administrador",
       items: [
+        {
+          label: "Usuarios",
+          icon: "pi pi-user-edit",
+          route: "/admin/usuarios",
+        },
         {
           label: "Competencias",
           icon: "pi pi-graduation-cap",
@@ -103,6 +133,10 @@ export const menu = () => {
   const user = userState.getUser();
   let menu;
   switch (user?.rol) {
+    case "Root":
+      menu = menuRoot;
+      break;
+
     case "Admin":
       menu = menuAdmin;
       break;
@@ -113,6 +147,11 @@ export const menu = () => {
 
     case "Aprendiz":
       menu = menuAprendiz;
+      break;
+
+    default:
+      menu = menuAdmin;
+      break;
   }
 
   return menu;

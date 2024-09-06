@@ -17,6 +17,10 @@ const room = ref({
 
 const chat_active = ref(false);
 const chat_history = ref([]);
+const last_message = ref({
+  url: null,
+  type: null, // video, gift
+});
 
 function generateRandomRoom(length = 4) {
   const characters = "ABCDEF1234567890";
@@ -50,6 +54,22 @@ const toggle = (event) => {
   menu.value.toggle(event);
 };
 
+const drawLastMessage = (data) => {
+  for (let i = data.length - 1; i >= 0; i--) {
+    const message = data[i];
+
+    if (message.video) {
+      last_message.value = {
+        url: message.video,
+        type: "video",
+      };
+
+      console.log(last_message.value);
+      break;
+    }
+  }
+};
+
 const crearSala = () => {
   socket = useSocket();
   socket.on("connect", () => {
@@ -65,6 +85,7 @@ const crearSala = () => {
   socket.on("chatHistory", (data) => {
     console.log(data);
     chat_history.value = data;
+    drawLastMessage(data);
   });
 
   socket.emit("joinRoom", room.value);
@@ -138,41 +159,55 @@ const sendVideo = (chunks) => {
         <Menu ref="menu" id="config_menu" :model="menu_chat" popup />
       </template>
       <div class="relative">
-        <div class="chat h-80 overflow-auto p-5">
-          <template v-for="chat in chat_history">
-            <div
-              :class="
-                chat.username == room.username ? 'flex justify-end' : 'flex'
-              "
-            >
-              <Message
-                severity="success"
-                class="inline-block"
-                :closable="false"
+        <div class="chat h-80 flex p-5">
+          <div class="w-full overflow-auto p-5">
+            <template v-for="chat in chat_history">
+              <div
+                :class="
+                  chat.username == room.username ? 'flex justify-end' : 'flex'
+                "
               >
-                <template #messageicon>
-                  <Avatar
-                    class="mr-2"
-                    :label="chat.username[0]"
-                    shape="circle"
+                <Message
+                  severity="success"
+                  class="inline-block"
+                  :closable="false"
+                >
+                  <template #messageicon>
+                    <Avatar
+                      class="mr-2"
+                      :label="chat.username[0]"
+                      shape="circle"
+                    />
+                  </template>
+                  <span v-if="chat.message != 'videoSocket'" class="ml-2">{{
+                    chat.message
+                  }}</span>
+                  <video
+                    v-if="chat.video"
+                    :src="createVideoSrcFromBase64(chat.video)"
+                    width="200"
+                    autoplay
+                    loop
+                    muted
                   />
-                </template>
-                <span v-if="chat.message != 'videoSocket'" class="ml-2">{{
-                  chat.message
-                }}</span>
-                <video
-                  v-if="chat.video"
-                  :src="createVideoSrcFromBase64(chat.video)"
-                  width="200"
-                  autoplay
-                  loop
-                  muted
-                />
-              </Message>
-            </div>
-          </template>
+                </Message>
+              </div>
+            </template>
+          </div>
+          <Divider layout="vertical" />
+          <div class="w-full">
+            <video
+              class="object-cover"
+              style="margin: 20px"
+              v-if="last_message.url"
+              :src="createVideoSrcFromBase64(last_message.url)"
+              autoplay
+              loop
+              muted
+            />
+          </div>
         </div>
-        <div class="flex gap-1 mt-3 p-2 rounded-md">
+        <div class="flex gap-1 mt-10 p-2 rounded-md">
           <Button
             icon="pi pi-video "
             class="bg-primary"
