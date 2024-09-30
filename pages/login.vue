@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const toast = useToast();
+const router = useRouter();
 const api = useApi();
 const username = ref();
 const password = ref();
@@ -25,6 +26,7 @@ const iniciarSesion = async () => {
       })
         .then((user) => {
           userState.setUser(user);
+          router.push("index");
           toast.add({
             severity: "success",
             summary: "Iniciar Sesión",

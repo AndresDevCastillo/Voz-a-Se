@@ -36,10 +36,6 @@ export const useUserStore = defineStore("useUserStore", {
           path = "/admin/salas";
           break;
       }
-      const router = useRouter();
-      router.push({
-        path,
-      });
     },
     getUser() {
       return this.user;
@@ -55,19 +51,9 @@ export const useUserStore = defineStore("useUserStore", {
     },
     logout() {
       this.user = null; // Limpia el estado del usuario
-
-      // Solo en el cliente
-      if (import.meta.client) {
-        localStorage.removeItem("useUserStore"); // Limpia la persistencia
-      }
-
-      const router = useRouter();
-      router.push({
-        path: "/login", // Redirige al login
-      });
     },
   },
   persist: {
-    storage: persistedState.localStorage,
+    storage: persistedState.cookies,
   },
 });
