@@ -21,7 +21,7 @@ body {
 
 .bg-primary:hover {
   background-color: #28a745;
-  border: #28a745 ;
+  border: #28a745;
 }
 
 .text-primary {

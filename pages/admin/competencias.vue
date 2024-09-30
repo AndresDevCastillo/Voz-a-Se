@@ -3,10 +3,12 @@ import { FilterMatchMode } from "primevue/api";
 
 definePageMeta({
   layout: "admin",
+  middleware: "auth",
 });
 
 const api = useApi();
 const confirm = useConfirm();
+
 const toast = useToast();
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },

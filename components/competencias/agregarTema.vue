@@ -10,6 +10,7 @@ const props = defineProps({
   idActualizar: {
     required: true,
     type: String,
+    default: "",
   },
 });
 

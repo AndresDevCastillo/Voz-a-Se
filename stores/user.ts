@@ -1,3 +1,5 @@
+import { useRouter } from "vue-router";
+
 type User = {
   _id: string;
   username: string;
@@ -16,7 +18,6 @@ export const useUserStore = defineStore("useUserStore", {
   actions: {
     setUser(user: any) {
       this.user = user;
-      const router = useRouter();
       let path;
       switch (user.rol) {
         case "Root":
@@ -35,6 +36,7 @@ export const useUserStore = defineStore("useUserStore", {
           path = "/admin/salas";
           break;
       }
+      const router = useRouter();
       router.push({
         path,
       });
@@ -45,21 +47,27 @@ export const useUserStore = defineStore("useUserStore", {
     getToken() {
       return this.user?.access_token;
     },
-    isAuthenticated(): boolean {
+    isAuthenticated() {
       if (this.user) {
         return true;
       }
       return false;
     },
     logout() {
-      this.user = null;
+      this.user = null; // Limpia el estado del usuario
+
+      // Solo en el cliente
+      if (import.meta.client) {
+        localStorage.removeItem("useUserStore"); // Limpia la persistencia
+      }
+
       const router = useRouter();
       router.push({
-        path: "/login",
+        path: "/login", // Redirige al login
       });
     },
   },
   persist: {
-    storage: persistedState.cookies,
+    storage: persistedState.localStorage,
   },
 });
