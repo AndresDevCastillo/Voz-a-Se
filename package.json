@@ -18,6 +18,8 @@
     "primevue": "^3.52.0",
     "socket.io-client": "^4.7.5",
     "vue": "^3.4.27",
+    "vue-audio-recorder": "^3.0.1",
+    "vue-audio-tapir": "^1.6.1",
     "vue-router": "^4.3.0"
   },
   "devDependencies": {

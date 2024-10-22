@@ -7,6 +7,8 @@ definePageMeta({
 const menu = ref(null);
 var socket = null;
 
+const chatContainer = ref(null);
+
 const dialogCrearSala = ref(false);
 const dialogoCamara = ref(false);
 
@@ -87,6 +89,9 @@ const crearSala = () => {
     console.log(data);
     chat_history.value = data;
     drawLastMessage(data);
+    nextTick(() => {
+      scrollToBottom(); // Hacer scroll después de que el DOM se haya actualizado
+    });
   });
 
   socket.emit("joinRoom", room.value);
@@ -126,9 +131,73 @@ const sendVideo = (chunks) => {
     console.error("chunks no es un arreglo o está vacío");
   }
 };
+
+const isRecording = ref(false);
+let mediaRecorder = null;
+let audioChunks = [];
+
+// Esta función se llama cuando el botón de grabación de audio se activa
+const startRecording = () => {
+  if (isRecording.value) {
+    // Si ya está grabando, detenemos la grabación
+    stopRecording();
+  } else {
+    // Solicitamos permiso para usar el micrófono
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.start();
+        isRecording.value = true;
+        audioChunks = [];
+
+        // Escuchar cuando llega un nuevo fragmento de audio
+        mediaRecorder.addEventListener("dataavailable", (event) => {
+          audioChunks.push(event.data);
+        });
+
+        // Escuchar cuando la grabación se detiene
+        mediaRecorder.addEventListener("stop", () => {
+          const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          const reader = new FileReader();
+
+          reader.readAsDataURL(audioBlob);
+          reader.onloadend = () => {
+            const base64AudioMessage = reader.result.split(",")[1];
+
+            // Emitir el audio a través del socket
+            socket.emit("audio", {
+              room: room.value.room,
+              username: room.value.username,
+              audio: base64AudioMessage,
+            });
+          };
+        });
+      })
+      .catch((err) => {
+        console.error("Error al acceder al micrófono", err);
+      });
+  }
+};
+
+// Detener la grabación
+const stopRecording = () => {
+  if (mediaRecorder && isRecording.value) {
+    mediaRecorder.stop();
+    isRecording.value = false;
+  }
+};
+
+const scrollToBottom = () => {
+  const container = chatContainer.value;
+  if (container) {
+    container.scrollTop = container.scrollHeight;
+  }
+};
 </script>
 <template>
-  <div class="flex flex-col min-h-screen m-5">
+  <div class="flex flex-col m-5">
     <Toolbar v-if="!chat_active">
       <template #start>
         <Button icon="pi pi-plus" class="mr-2 bg-primary" />
@@ -160,8 +229,8 @@ const sendVideo = (chunks) => {
         <Menu ref="menu" id="config_menu" :model="menu_chat" popup />
       </template>
       <div class="relative">
-        <div class="chat h-80 flex p-5">
-          <div class="w-full overflow-auto p-5">
+        <div class="chat flex p-5">
+          <div ref="chatContainer" class="w-full overflow-auto p-5">
             <template v-for="chat in chat_history">
               <div
                 :class="
@@ -180,9 +249,13 @@ const sendVideo = (chunks) => {
                       shape="circle"
                     />
                   </template>
-                  <span v-if="chat.message != 'videoSocket'" class="ml-2">{{
+
+                  <!-- Mostrar mensaje de texto si no es un video o audio -->
+                  <span v-if="!chat.video && !chat.audio" class="ml-2">{{
                     chat.message
                   }}</span>
+
+                  <!-- Mostrar video si está presente -->
                   <video
                     v-if="chat.video"
                     :src="createVideoSrcFromBase64(chat.video)"
@@ -191,12 +264,20 @@ const sendVideo = (chunks) => {
                     loop
                     muted
                   />
+
+                  <!-- Mostrar reproductor de audio si hay un archivo de audio presente -->
+                  <audio
+                    v-if="chat.audio"
+                    :src="'data:audio/webm;base64,' + chat.audio"
+                    controls
+                    class="ml-2"
+                  ></audio>
                 </Message>
               </div>
             </template>
           </div>
           <Divider layout="vertical" />
-          <div class="w-full">
+          <div class="w-full overflow-auto">
             <video
               class="object-cover"
               style="margin: 20px"
@@ -208,28 +289,35 @@ const sendVideo = (chunks) => {
             />
           </div>
         </div>
-        <div class="flex gap-1 mt-10 p-2 rounded-md">
-          <Button
-            icon="pi pi-video "
-            class="bg-primary"
-            @click="dialogoCamara = true"
-          />
-
-          <InputText
-            placeholder="Escribe un mensaje.."
-            v-model="room.message"
-            @keydown.enter="sendMessage"
-            class="w-full"
-          />
-          <Button
-            :disabled="!room.message || room.message == ''"
-            @click="sendMessage()"
-            class="bg-primary"
-            icon="pi pi-send"
-          />
-        </div>
       </div>
     </Panel>
+    <div class="flex gap-1 p-2 rounded-md">
+      <Button
+        icon="pi pi-video "
+        class="bg-primary"
+        :disabled="!chat_active"
+        @click="dialogoCamara = true"
+      />
+      <Button
+        icon="pi pi-microphone "
+        :disabled="!chat_active"
+        :class="{ 'bg-red-500': isRecording }"
+        @click="startRecording"
+      />
+
+      <InputText
+        placeholder="Escribe un mensaje.."
+        v-model="room.message"
+        @keydown.enter="sendMessage"
+        class="w-full"
+      />
+      <Button
+        :disabled="!room.message || room.message == '' || !chat_active"
+        @click="sendMessage()"
+        class="bg-primary"
+        icon="pi pi-send"
+      />
+    </div>
 
     <Dialog
       v-model:visible="dialogCrearSala"
@@ -288,3 +376,10 @@ const sendVideo = (chunks) => {
     </Dialog>
   </div>
 </template>
+
+<style scoped>
+.chat {
+  min-height: 73vh;
+  max-height: 73vh;
+}
+</style>

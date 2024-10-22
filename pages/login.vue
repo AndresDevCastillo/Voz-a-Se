@@ -26,7 +26,7 @@ const iniciarSesion = async () => {
       })
         .then((user) => {
           userState.setUser(user);
-          router.push("index");
+          router.push("/");
           toast.add({
             severity: "success",
             summary: "Iniciar Sesión",
