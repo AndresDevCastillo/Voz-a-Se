@@ -26,14 +26,6 @@ const toggleCamera = async () => {
   }
 };
 
-const stopCamera = () => {
-  if (webcamRef.value && webcamRef.value.srcObject) {
-    webcamRef.value.srcObject.getTracks().forEach((track) => track.stop());
-    webcamRef.value.srcObject = null;
-  }
-  isCameraActive.value = false;
-};
-
 const startCountdown = () => {
   if (!isCameraActive.value) {
     console.error("La cámara no está activa.");
@@ -63,11 +55,21 @@ const startRecording = () => {
   mediaRecorder.start();
 };
 
+const stopCamera = () => {
+  if (webcamRef.value && webcamRef.value.srcObject) {
+    const tracks = webcamRef.value.srcObject.getTracks();
+    tracks.forEach((track) => track.stop());
+    webcamRef.value.srcObject = null;
+  }
+  isCameraActive.value = false;
+};
+
 const stopRecording = () => {
   return new Promise((resolve) => {
     mediaRecorder.addEventListener("stop", () => {
       recordedBlob = new Blob(recordedChunks, { type: "video/mp4" });
       isRecording.value = false;
+      stopCamera();
       resolve();
     });
 

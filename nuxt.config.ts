@@ -49,5 +49,5 @@ export default defineNuxtConfig({
     usePrimeVue: true,
   },
 
-  compatibilityDate: "2024-07-24",
+  compatibilityDate: "2024-10-28",
 });

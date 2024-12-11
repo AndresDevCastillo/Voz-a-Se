@@ -67,8 +67,41 @@ const drawLastMessage = (data) => {
         type: "video",
       };
 
-      console.log(last_message.value);
       break;
+    }
+  }
+};
+
+const voiceValidate = (data) => {
+  if (data?.voice) {
+    try {
+      // La cadena base64 que recibes (ya está en formato Base64)
+      const base64String = data.voice;
+
+      // 1. Decodificar la cadena Base64 a una cadena binaria
+      const binaryString = window.atob(base64String); // Esto puede lanzar una excepción si la cadena no está bien codificada
+
+      // 2. Convertir la cadena binaria en un Uint8Array
+      const byteNumbers = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        byteNumbers[i] = binaryString.charCodeAt(i);
+      }
+
+      // 3. Crear un Blob a partir del Uint8Array con el tipo MIME de audio MP3
+      const blob = new Blob([byteNumbers], { type: "audio/mpeg" }); // Usamos 'audio/mpeg' para MP3
+
+      // 4. Crear una URL a partir del Blob
+      const audioUrl = URL.createObjectURL(blob);
+
+      // 5. Reproducir el audio
+      const audio = new Audio(audioUrl);
+      audio
+        .play()
+        .catch((error) =>
+          console.error("Error al reproducir el audio:", error)
+        );
+    } catch (error) {
+      console.error("Error al decodificar la cadena Base64:", error);
     }
   }
 };
@@ -86,9 +119,9 @@ const crearSala = () => {
   });
 
   socket.on("chatHistory", (data) => {
-    console.log(data);
     chat_history.value = data;
     drawLastMessage(data);
+    voiceValidate(data[data.length - 1]);
     nextTick(() => {
       scrollToBottom(); // Hacer scroll después de que el DOM se haya actualizado
     });
@@ -115,12 +148,10 @@ function createVideoSrcFromBase64(base64) {
 
 const sendVideo = (chunks) => {
   dialogoCamara.value = false;
-  console.log(chunks);
 
   if (Array.isArray(chunks) && chunks.length > 0) {
     // Asegúrate de que chunks sea un array y no esté vacío
     chunks.forEach((chunk) => {
-      console.log(chunk);
       socket.emit("video_chunk", {
         room: room.value.room,
         username: room.value.username,
@@ -236,6 +267,7 @@ const scrollToBottom = () => {
                 :class="
                   chat.username == room.username ? 'flex justify-end' : 'flex'
                 "
+                v-if="!chat.voice"
               >
                 <Message
                   severity="success"
